@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Chat</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 18px Helvetica, Arial; }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      input[type=text] { border: 0; padding: 10px; width: 90%; margin-right: 0.5%; }
+      input[type=submit] { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #topbar { width: 100%; height: 42px; background: black; }
+      #location { font: 32px Helvetica, Arial; color: white; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+    </style>
+  </head>
+  <body>
+    <div id="topbar">
+      <p id="location">#welcome</p>
+    </div>
+    <ul id="messages"></ul>
+    <form>
+      <input type="text" id="msg" placeholder="message">
+      <input type="submit" value="Send">
+    </form>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        var socket = io();
+	var welcome = "Welcome to IRC, use /help for commands";
+	$("#messages").append($("<li>").text(welcome));
+	$.post("/send", {msg: "/show #welcome"}, function(docs, status) {
+            docs.forEach(doc => {
+                var message = doc.sender + ": " + doc.message;
+	        $("#messages").append($("<li>").text(message));
+	    });
+	});
+	$("form").submit(function(e){
+	    e.preventDefault();
+	    var chatJSON = {msg: $("#msg").val()};
+	    if ((chatJSON.msg).startsWith("/clear")) {
+	        $("#messages").empty();
+		$("#msg").val("");
+	        return ;
+	    }
+	    else if ((chatJSON.msg).startsWith("/show")) {
+		var split = (chatJSON.msg).split(" ");
+		$("#location").text(split[1]);
+	        $("#messages").empty();
+	    }
+	    else if ((chatJSON.msg).startsWith("/nick")) {
+		var split = (chatJSON.msg).split(" ");
+		sessionStorage.setItem("user", "@" + split[1]);
+	    }
+	    $.post("/send", chatJSON, function(docs, status) {
+                docs.forEach(doc => {
+                    var message = doc.sender + ": " + doc.message;
+	            $("#messages").append($("<li>").text(message));
+	        });
+	    });
+	    $("#msg").val("");
+	    return false;
+	});
+	socket.on("SERVMSG" + sessionStorage.getItem("user"), function(msg) {
+	    $("#messages").append($("<li>").text(msg));
+	    return ;
+	});
+	socket.on("chatodesu", function(msgJSON) {
+	    if (msgJSON.sender === undefined) {
+	        var mesgCache = msgJSON;
+		msgJSON = {};
+		msgJSON.sender = "Server";
+		msgJSON.message = mesgCache;
+	    }
+	    var msgText = msgJSON.sender + ": " + msgJSON.message;
+	    $("#messages").append($("<li>").text(msgText));
+	});
+    });
+    </script>
+  </body>
+</html>

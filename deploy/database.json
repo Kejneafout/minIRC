@@ -1,0 +1,32 @@
+{
+    "ircdata": {
+	"users": [
+	    {
+		"username": "@skerp"
+	    }
+	],
+	"channels": [
+	    {
+		"name": "#anime",
+		"members": ["@skerp",
+			    "@apino",
+			    "@keisay"]
+	    }
+	],
+	"chats": [
+	    {
+		"recipient": "#anime",
+		"sender": "@skerp",
+		"message": "Himouto! Umaru-chan",
+		"timestamp": 1000000000
+	    },
+	    {
+		"recipient": ["@apino",
+			      "@skerp"],
+		"sender:": "@skerp",
+		"message": "https://anilist.co/user/Skerp/animelist",
+		"timestamp": 1000000000
+	    }
+	]
+    }
+}
